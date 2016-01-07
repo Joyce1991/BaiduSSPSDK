@@ -5,8 +5,16 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.graphics.RectF;
+import android.graphics.drawable.ShapeDrawable;
+import android.graphics.drawable.shapes.RoundRectShape;
 import android.os.Bundle;
+import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.TextView;
 
 import com.baidu.mobads.AdView;
@@ -32,7 +40,6 @@ public class JoActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_jo);
 
         // 更新友盟在线参数到本地缓存
         OnlineConfigAgent.getInstance().updateOnlineConfig(this);
@@ -44,9 +51,38 @@ public class JoActivity extends Activity {
      * 配置百度广告信息
      */
     private void configBaiduSsp() {
+        FrameLayout lFrameLayout = new FrameLayout(this);
+        FrameLayout.LayoutParams lLayoutParams = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        lFrameLayout.setLayoutParams(lLayoutParams);
+
+        AdView lAdView = new AdView(this);
+        lAdView.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        lFrameLayout.addView(lAdView);
+
+        // 外部矩形弧度
+        float[] lOuterR = new float[] { 8, 8, 8, 8, 8, 8, 8, 8 };
+        // 内部矩形与外部矩形的距离
+        RectF lInsetRectF = new RectF(100, 100, 50, 50);
+        ShapeDrawable lShapeDrawable = new ShapeDrawable();
+        lShapeDrawable.setShape(new RoundRectShape(lOuterR,lInsetRectF, null));
+        //指定填充颜色
+        lShapeDrawable.getPaint().setColor(Color.argb(179, 255, 255, 255));
+        final TextView lTextView = new TextView(this);
+        lTextView.setText("跳过");
+        lTextView.setTextColor(Color.WHITE);
+        lTextView.setBackground(lShapeDrawable);
+        lTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
+        lTextView.setClickable(true);
+        lTextView.setVisibility(View.INVISIBLE);
+        FrameLayout.LayoutParams lTextViewParams = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lTextViewParams.gravity = Gravity.TOP|Gravity.RIGHT;
+        lTextViewParams.rightMargin = 20;
+        lTextViewParams.topMargin = 20;
+        lFrameLayout.addView(lTextView,lTextViewParams);
+        setContentView(lFrameLayout);
+
         AdView.setAppSid(this, OnlineConfigAgent.getInstance().getConfigParams(this, Constant.BAIDU_AD_APPID));
-        final AdView lAdView = (AdView) findViewById(R.id.cbma_content);
-        final TextView lTextView = (TextView) findViewById(R.id.tv_skip);
+        LogUtils.d(OnlineConfigAgent.getInstance().getConfigParams(this, Constant.BAIDU_AD_APPID));
         SplashAdListener listener = new SplashAdListener() {
             @Override
             public void onAdPresent() {
@@ -78,6 +114,7 @@ public class JoActivity extends Activity {
                 listener,
                 lConfigAdParcelID,
                 true);
+        LogUtils.d(lConfigAdParcelID);
     }
 
     /**
